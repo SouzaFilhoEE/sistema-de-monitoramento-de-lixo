@@ -1,0 +1,494 @@
+﻿#include <WiFi.h>
+#include <PubSubClient.h>
+
+
+// ======================================================
+// 1. CONFIGURAÇÃO DO WI-FI
+// ======================================================
+// Rede Wi-Fi à qual o ESP32 irá se conectar.
+
+
+const char* ssid = "PET EE";
+const char* password = "petiscos30";
+
+
+
+
+// ======================================================
+// 2. CONFIGURAÇÃO DO MQTT
+// ======================================================
+// Endereço IP externo do servidor onde está o MQTT Broker.
+// Porta externa utilizada para acessar o MQTT.
+//
+// Porta externa: 8053
+// Porta interna do Mosquitto no servidor: 1883
+
+
+const char* mqtt_server = "200.18.75.25";
+const int mqtt_port = 8053;
+
+
+
+
+// ======================================================
+// 3. TÓPICO MQTT
+// ======================================================
+// O ESP32 publica as medições neste tópico.
+//
+// Exemplo de mensagem:
+// 37.52
+//
+// Tópico:
+// teste/esp32
+
+
+const char* mqtt_topic = "teste/esp32";
+
+
+
+
+// ======================================================
+// 4. CONFIGURAÇÃO DO SENSOR HC-SR04
+// ======================================================
+// TRIG -> GPIO 18
+// ECHO -> GPIO 19
+
+
+#define TRIG_PIN 18
+#define ECHO_PIN 19
+
+
+
+
+// ======================================================
+// 5. OBJETOS DE COMUNICAÇÃO
+// ======================================================
+// WiFiClient estabelece a comunicação TCP/IP.
+//
+// PubSubClient utiliza essa conexão para realizar
+// a comunicação através do protocolo MQTT.
+
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+
+
+
+// ======================================================
+// 6. CONECTAR AO WI-FI
+// ======================================================
+
+
+void setup_wifi() {
+
+
+  Serial.println();
+  Serial.print("Conectando ao Wi-Fi: ");
+  Serial.println(ssid);
+
+
+  // Inicia a conexão com a rede Wi-Fi
+  WiFi.begin(ssid, password);
+
+
+  // Aguarda até o ESP32 conseguir se conectar
+  while (WiFi.status() != WL_CONNECTED) {
+
+
+    delay(500);
+    Serial.print(".");
+  }
+
+
+  Serial.println();
+
+
+  Serial.println("Wi-Fi conectado!");
+
+
+  // Mostra o endereço IP recebido pelo ESP32
+  Serial.print("IP do ESP32: ");
+  Serial.println(WiFi.localIP());
+
+
+  // Mostra o Gateway da rede
+  Serial.print("Gateway: ");
+  Serial.println(WiFi.gatewayIP());
+}
+
+
+
+
+// ======================================================
+// 7. CONECTAR AO SERVIDOR MQTT
+// ======================================================
+
+
+void reconnectMQTT() {
+
+
+  // Enquanto o ESP32 não estiver conectado ao MQTT,
+  // tenta realizar uma nova conexão.
+
+
+  while (!client.connected()) {
+
+
+    Serial.print("Conectando ao MQTT...");
+
+
+
+
+    // ==================================================
+    // CLIENT ID
+    // ==================================================
+    // Cada ESP32 recebe um ID diferente.
+    //
+    // Exemplo:
+    // ESP32-a31f
+    //
+    // Isso evita conflitos caso existam vários ESP32
+    // conectados ao mesmo Broker MQTT.
+
+
+    String clientID = "ESP32-" + String(random(0xffff), HEX);
+
+
+
+
+    // Tenta conectar ao MQTT Broker
+
+
+    if (client.connect(clientID.c_str())) {
+
+
+      Serial.println(" conectado!");
+
+
+    } else {
+
+
+      // Caso a conexão falhe, mostra o código do erro
+
+
+      Serial.print(" falhou, código: ");
+      Serial.println(client.state());
+
+
+      Serial.println("Tentando novamente em 5 segundos...");
+
+
+      // Aguarda 5 segundos antes de tentar novamente
+
+
+      delay(5000);
+    }
+  }
+}
+
+
+
+
+// ======================================================
+// 8. MEDIR DISTÂNCIA COM HC-SR04
+// ======================================================
+
+
+float medirDistancia() {
+
+
+  // Garante que o TRIG começa em LOW
+
+
+  digitalWrite(TRIG_PIN, LOW);
+
+
+  delayMicroseconds(2);
+
+
+
+
+  // Envia um pulso de 10 microssegundos pelo TRIG
+
+
+  digitalWrite(TRIG_PIN, HIGH);
+
+
+  delayMicroseconds(10);
+
+
+  digitalWrite(TRIG_PIN, LOW);
+
+
+
+
+  // Mede quanto tempo o sinal permaneceu HIGH
+  // no pino ECHO.
+  //
+  // Timeout de 30000 microssegundos.
+
+
+  long duracao = pulseIn(ECHO_PIN, HIGH, 30000);
+
+
+
+
+  // Se não houver retorno do sinal,
+  // retorna -1 indicando erro.
+
+
+  if (duracao == 0) {
+
+
+    return -1;
+  }
+
+
+
+
+  // ==================================================
+  // CÁLCULO DA DISTÂNCIA
+  // ==================================================
+  //
+  // Velocidade aproximada do som:
+  // 0.0343 cm/us
+  //
+  // Divide por 2 porque o som percorre:
+  // ESP32 -> objeto -> ESP32
+
+
+  float distancia = duracao * 0.0343 / 2.0;
+
+
+  return distancia;
+}
+
+
+
+
+// ======================================================
+// 9. SETUP
+// ======================================================
+// Executado uma única vez quando o ESP32 é ligado.
+
+
+void setup() {
+
+
+  // Inicia comunicação com o Monitor Serial
+  // em 115200 bits/s.
+
+
+  Serial.begin(115200);
+
+
+
+
+  // ==================================================
+  // CONFIGURAÇÃO DOS PINOS DO HC-SR04
+  // ==================================================
+
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+
+
+
+  // ==================================================
+  // CONEXÃO WI-FI
+  // ==================================================
+
+
+  setup_wifi();
+
+
+
+
+  // ==================================================
+  // CONFIGURAÇÃO DO SERVIDOR MQTT
+  // ==================================================
+  //
+  // Servidor:
+  // 200.18.75.25
+  //
+  // Porta:
+  // 8053
+
+
+  client.setServer(mqtt_server, mqtt_port);
+
+
+
+
+  Serial.println();
+  Serial.println("ESP32 pronto!");
+}
+
+
+
+
+// ======================================================
+// 10. LOOP PRINCIPAL
+// ======================================================
+// Executado continuamente enquanto o ESP32 estiver ligado.
+
+
+void loop() {
+
+
+
+
+  // ==================================================
+  // VERIFICAR CONEXÃO MQTT
+  // ==================================================
+  //
+  // Caso o ESP32 perca a conexão com o MQTT,
+  // tenta se reconectar automaticamente.
+
+
+  if (!client.connected()) {
+
+
+    reconnectMQTT();
+  }
+
+
+
+
+  // Mantém a comunicação MQTT funcionando
+
+
+  client.loop();
+
+
+
+
+  // ==================================================
+  // CONTROLE DO INTERVALO DE ENVIO
+  // ==================================================
+  //
+  // Guarda o momento do último envio.
+
+
+  static unsigned long ultimoEnvio = 0;
+
+
+
+
+  // ==================================================
+  // INTERVALO DE ENVIO
+  // ==================================================
+  //
+  // A cada 5000 ms = 5 segundos
+  // o ESP32 realiza uma nova medição.
+
+
+  if (millis() - ultimoEnvio >= 5000) {
+
+
+    ultimoEnvio = millis();
+
+
+
+
+    // ==================================================
+    // REALIZAR MEDIÇÃO
+    // ==================================================
+
+
+    float distancia = medirDistancia();
+
+
+
+
+    // ==================================================
+    // VERIFICAR SE A LEITURA FOI VÁLIDA
+    // ==================================================
+
+
+    if (distancia < 0) {
+
+
+      Serial.println("Erro na leitura do HC-SR04!");
+
+
+    } else {
+
+
+
+
+      // ==================================================
+      // FORMATAR A DISTÂNCIA
+      // ==================================================
+      //
+      // A mensagem terá duas casas decimais.
+      //
+      // Exemplo:
+      // 37.52
+
+
+      char mensagem[10];
+
+
+      snprintf(
+        mensagem,
+        sizeof(mensagem),
+        "%.2f",
+        distancia
+      );
+
+
+
+
+      // ==================================================
+      // PUBLICAR NO MQTT
+      // ==================================================
+      //
+      // Tópico:
+      // teste/esp32
+      //
+      // Mensagem:
+      // 37.52
+
+
+      bool enviado = client.publish(
+        mqtt_topic,
+        mensagem
+      );
+
+
+
+
+      // ==================================================
+      // MOSTRAR INFORMAÇÕES NO MONITOR SERIAL
+      // ==================================================
+
+
+      Serial.print("Distância: ");
+      Serial.print(mensagem);
+      Serial.println(" cm");
+
+
+
+
+      // ==================================================
+      // VERIFICAR SE O MQTT RECEBEU A MENSAGEM
+      // ==================================================
+
+
+      if (enviado) {
+
+
+        Serial.println("Mensagem enviada com sucesso!");
+
+
+      } else {
+
+
+        Serial.println("ERRO ao enviar mensagem!");
+      }
+    }
+  }
+}
