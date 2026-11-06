@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#030914">
+<title>SCRAP | Plataforma de Monitoramento</title>
+<style>
+* { box-sizing: border-box; }
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #030914;
+}
+.splash {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(83,88,108,.28), transparent 48%),
+      linear-gradient(145deg,#292c35 0%,#1b1e26 55%,#111319 100%);
+}
+
+.access {
+    position: absolute;
+    left: 50%;
+    top: 82.3%;
+    width: 34%;
+    height: 9.3%;
+    transform: translate(-50%, -50%);
+    display: block;
+    border-radius: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.access:focus-visible {
+    outline: 3px solid #38bdf8;
+    outline-offset: 5px;
+}
+@media (max-width: 600px) {
+    .splash { background-size: cover; }
+    .access {
+        top: 82.3%;
+        width: 72%;
+        height: 10%;
+    }
+}
+</style>
+
+<style>
+.splash::before,.splash::after{content:"";position:absolute;z-index:-1;border:1px solid rgba(255,255,255,.035);border-radius:50%;width:min(90vw,900px);aspect-ratio:1;pointer-events:none}
+.splash::after{width:min(70vw,700px);border-color:rgba(255,255,255,.025)}
+.brand-stage{position:relative;width:min(54vw,470px);height:min(54vw,300px);min-height:210px;display:grid;place-items:center;animation:brandFloat 5s ease-in-out infinite}
+.brand-word{font-family:Arial,Helvetica,sans-serif;font-size:clamp(76px,13vw,150px);font-weight:900;letter-spacing:-.075em;line-height:1;color:#f5f6fa;text-shadow:0 5px 25px rgba(0,0,0,.35);z-index:2;animation:wordGlow 4s ease-in-out infinite}
+.brand-orbit{position:absolute;width:66%;height:86%;border:8px solid transparent;border-radius:50%;background:linear-gradient(#242731,#242731) padding-box,linear-gradient(135deg,#a64cff,#397bff,#00d5c5,#65e45b,#ffe33b,#ff4b64) border-box;filter:drop-shadow(0 0 12px rgba(70,190,255,.24))}
+.orbit-one{clip-path:polygon(0 0,100% 0,100% 42%,0 42%);transform:rotate(-28deg);animation:orbitTurn 12s linear infinite}
+.orbit-two{clip-path:polygon(0 58%,100% 58%,100% 100%,0 100%);transform:rotate(-28deg);animation:orbitTurn 12s linear infinite reverse}
+.brand-spectrum{position:absolute;bottom:13%;width:54%;height:5px;border-radius:20px;background:linear-gradient(90deg,#a64cff,#397bff,#00d5c5,#65e45b,#ffe33b,#ff4b64);box-shadow:0 0 18px rgba(0,210,190,.28)}
+.tagline{margin:20px 16px 0;color:#b9bdc8;font-size:clamp(11px,1.5vw,17px);letter-spacing:.32em;text-align:center;font-weight:500}
+.access{position:relative;left:auto;top:auto;transform:none;width:min(340px,78vw);height:58px;margin-top:54px;display:flex;align-items:center;justify-content:center;gap:22px;border:1px solid rgba(255,255,255,.16);border-radius:15px;background:linear-gradient(135deg,#414550,#30343e);color:#f7f8fb;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 10px 28px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.09);transition:transform .25s,border-color .25s,box-shadow .25s}
+.access::after{content:"";position:absolute;inset:auto 18% -3px;height:3px;border-radius:10px;background:linear-gradient(90deg,#a64cff,#397bff,#00d5c5,#65e45b,#ffe33b,#ff4b64)}
+.access:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.32);box-shadow:0 15px 34px rgba(0,0,0,.36)}
+.access-arrow{font-size:25px;font-weight:400;line-height:1}
+.splash-foot{position:absolute;bottom:30px;display:flex;align-items:center;gap:12px;color:#777d8a;font-size:9px;letter-spacing:.18em;text-align:center}
+.splash-foot span{width:24px;height:1px;background:#555b67}
+@keyframes brandFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes orbitTurn{0%{rotate:0deg}100%{rotate:360deg}}
+@keyframes wordGlow{0%,100%{text-shadow:0 5px 25px rgba(0,0,0,.35)}50%{text-shadow:0 5px 28px rgba(125,100,255,.22),0 0 38px rgba(0,210,190,.12)}}
+@media(max-width:600px){.brand-stage{width:88vw;height:64vw;min-height:190px}.brand-word{font-size:clamp(76px,19vw,112px)}.brand-orbit{border-width:6px}.tagline{font-size:10px;letter-spacing:.2em;margin-top:10px}.access{margin-top:42px;height:54px;font-size:12px}.splash-foot{bottom:20px;font-size:7px;letter-spacing:.12em}}
+@media(prefers-reduced-motion:reduce){.brand-stage,.brand-word,.brand-orbit{animation:none!important}}
+</style>
+
+</head>
+<body>
+<main class="splash" aria-label="SCRAP — Plataforma de Monitoramento">
+    <div class="brand-stage" aria-label="SCRAP">
+      <div class="brand-orbit orbit-one"></div>
+      <div class="brand-orbit orbit-two"></div>
+      <div class="brand-word">SCRAP</div>
+      <div class="brand-spectrum"></div>
+    </div>
+    <p class="tagline">PLATAFORMA DE MONITORAMENTO</p>
+    <a class="access" href="/lixeiras.html" aria-label="Acessar plataforma">
+      <span>Acessar plataforma</span><span class="access-arrow">→</span>
+    </a>
+    <div class="splash-foot"><span></span> UFSM · SMART RESOURCE ANALYTICS PLATFORM <span></span></div>
+</main>
+</body>
+</html>
