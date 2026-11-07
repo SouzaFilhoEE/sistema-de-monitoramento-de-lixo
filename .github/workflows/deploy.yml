@@ -1,0 +1,39 @@
+name: Deploy SCRAP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar arquivos do GitHub
+        uses: actions/checkout@v4
+
+      - name: Enviar site para o servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "index.html,lixeiras.html,sobre.html,assets/**"
+          target: "/tmp/scrap-deploy"
+
+      - name: Publicar arquivos no site
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo cp /tmp/scrap-deploy/index.html /var/www/scrap/
+            sudo cp /tmp/scrap-deploy/lixeiras.html /var/www/scrap/
+            sudo cp /tmp/scrap-deploy/sobre.html /var/www/scrap/
+            sudo cp -r /tmp/scrap-deploy/assets/. /var/www/scrap/assets/
+            sudo chown -R www-data:www-data /var/www/scrap
+            rm -rf /tmp/scrap-deploy
