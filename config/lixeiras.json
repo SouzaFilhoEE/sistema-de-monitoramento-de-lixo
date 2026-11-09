@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "bins": [
+    {
+      "id": "1",
+      "name": "Lixeira 1",
+      "location": "CT - Prédio 07",
+      "active": true,
+      "protected": true,
+      "legacy": true,
+      "sensors": ["HC-SR04", "DHT11"],
+      "dimensions": {
+        "height_cm": 29.7,
+        "base_side_cm": 19.5
+      },
+      "mqtt": {
+        "topic": "teste/esp32",
+        "format": "distancia;temperatura"
+      }
+    }
+  ]
+}
